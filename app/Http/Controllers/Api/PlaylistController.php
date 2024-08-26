@@ -5,92 +5,61 @@ namespace App\Http\Controllers\Api;
 use App\Models\Playlist;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\PlaylistResource;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use App\Models\Lagu;
-
 
 class PlaylistController extends Controller
 {
-    /**
-     * index
-     *
-     * @return void
-     */
     public function index()
     {
-        //get posts
-        $playlist = Playlist::latest()->paginate(5);
+        $user = Auth::user();
+        $playlists = Playlist::where('user_id', $user->id)->latest()->paginate(5);
 
-        //return collection of playlist as a resource
-        return new PlaylistResource(true, 'List Data Playlist', $playlist);
+        return response()->json([
+            'success' => true,
+            'message' => 'List Data Playlist',
+            'data'    => $playlists
+        ]);
     }
 
-    /**
-     * store
-     *
-     * @param  mixed $request
-     * @return void
-     */
     public function store(Request $request)
     {
-        //define validation rules
-        $validator = Validator::make($request->all(), [
-            'title'     => 'required',
-        ]);
+        $user = auth()->user();
 
-        //check if validation fails
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated'], 401);
         }
 
-        //create playlist
-        $playlist = Playlist::create([
-            'title'     => $request->title,
-        ]);
-
-        //return response
-        return new PlaylistResource(true, 'Data Playlist Berhasil Ditambahkan!', $playlist);
+        $playlist = new Playlist();
+        $playlist->user_id = $user->id;
+        // Lanjutkan dengan penyimpanan playlist
     }
 
-    /**
-     * show
-     *
-     * @param  mixed $playlist
-     * @return void
-     */
     public function show($id)
     {
-        $playlist = Playlist::with('lagu')->findOrFail($id);
+        $playlist = Playlist::with('lagu')->where('id', $id)->where('user_id', Auth::id())->firstOrFail();
         return response()->json($playlist);
     }
 
-    /**
-     * update
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Playlist  $playlist
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function update(Request $request, Playlist $playlist)
     {
-        // Define validation rules
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
         ]);
 
-        // Check if validation fails
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
-        // Update playlist with new title
+        // Ensure that the playlist belongs to the authenticated user
+        if ($playlist->user_id !== Auth::id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
         $playlist->update([
             'title' => $request->title,
         ]);
 
-        // Return response
         return response()->json([
             'success' => true,
             'message' => 'Data Playlist Berhasil Diubah!',
@@ -98,49 +67,35 @@ class PlaylistController extends Controller
         ]);
     }
 
-
-    /**
-     * destroy
-     *
-     * @param  mixed $playlist
-     * @return void
-     */
     public function destroy(Playlist $playlist)
     {
-        //delete playlist
+        // Ensure that the playlist belongs to the authenticated user
+        if ($playlist->user_id !== Auth::id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
         $playlist->delete();
 
-        //return response
-        return new PlaylistResource(true, 'Data Playlist Berhasil Dihapus!', null);
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Playlist Berhasil Dihapus!',
+        ]);
     }
 
-    // Controller (PlaylistController.php)
     public function addSongToPlaylist(Request $request, $playlistId)
     {
-        // Validasi input
         $request->validate([
             'lagu_id' => 'required|integer|exists:lagu,id',
         ]);
 
-        // Temukan playlist berdasarkan ID
-        $playlist = Playlist::findOrFail($playlistId);
-
-        // Ambil ID lagu dari request
+        $playlist = Playlist::where('id', $playlistId)->where('user_id', Auth::id())->firstOrFail();
         $laguId = $request->input('lagu_id');
 
         try {
-            // Tambahkan lagu ke playlist
             $playlist->lagu()->attach($laguId);
-
-            // Muat kembali playlist dengan lagu-lagunya
             return response()->json($playlist->load('lagu'), 200);
-        } catch (QueryException $e) {
-            // Tangani kesalahan query
-            return response()->json(['error' => 'Terjadi kesalahan saat menambahkan lagu ke playlist', 'details' => $e->getMessage()], 500);
         } catch (\Exception $e) {
-            // Tangani kesalahan umum
             return response()->json(['error' => 'Terjadi kesalahan saat menambahkan lagu ke playlist', 'details' => $e->getMessage()], 500);
         }
     }
-
 }

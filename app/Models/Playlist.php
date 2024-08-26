@@ -11,13 +11,9 @@ class Playlist extends Model
 
     protected $table = 'playlist';
 
-    /**
-     * fillable
-     *
-     * @var array
-     */
     protected $fillable = [
         'title',
+        'user_id',
     ];
 
     public function lagu()
@@ -25,4 +21,8 @@ class Playlist extends Model
         return $this->belongsToMany(Lagu::class, 'laguplaylist', 'playlist_id', 'lagu_id');
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
@@ -53,16 +52,16 @@ class AuthController extends Controller
 
         // Cek kredensial
         if (!Auth::attempt($request->only('email', 'password'))) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
+            return response()->json([
+                'message' => 'The provided credentials are incorrect.',
+            ], 401);
         }
 
         // Ambil pengguna yang sudah login
         $user = Auth::user();
 
         // Buat token
-        $token = $user->createToken('Personal Access Token')->accessToken;
+        $token = $user->createToken('Personal Access Token')->plainTextToken;
 
         // Kembalikan respons dengan token
         return response()->json([
@@ -70,7 +69,7 @@ class AuthController extends Controller
             'user' => $user,
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'expires_in' => 3600 // Atur sesuai dengan pengaturan token
+            'expires_in' => 3600
         ]);
     }
 }

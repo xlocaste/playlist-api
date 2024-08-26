@@ -1,34 +1,33 @@
 <?php
+
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\LaguController;
 use App\Http\Controllers\Api\PlaylistController;
-use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\LaguPlaylistController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
-// Lagu routes
-Route::apiResource('/lagu', LaguController::class);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('/lagu', LaguController::class);
+    Route::post('/lagu', [LaguController::class, 'store']);
+    Route::get('/lagu', [LaguController::class, 'getAllSongs']);
+    Route::post('/playlist/{id}/lagu', [PlaylistController::class, 'addSongToPlaylist']);
+    Route::apiResource('/playlist', PlaylistController::class);
+    Route::get('/playlist', [PlaylistController::class, 'index']);
+    Route::get('/playlist/{playlist_id}/lagu', [LaguPlaylistController::class, 'index']);
+    Route::post('/playlist/{playlistId}/lagu', [LaguPlaylistController::class, 'addSongToPlaylist']);
+    Route::delete('/laguplaylist/{playlist_id}/lagu/{lagu_id}', [LaguPlaylistController::class, 'destroy']);
+    Route::delete('/playlist/{playlist_id}/lagu/{lagu_id}', [LaguPlaylistController::class, 'destroy']);
 
-// Playlist routes
-Route::apiResource('/playlist', PlaylistController::class);
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+});
 
-// routes/api.php
-
-use App\Http\Controllers\Api\LaguPlaylistController;
-
-// Rute untuk mendapatkan lagu dari playlist
-Route::get('/playlist/{playlist_id}/lagu', [LaguPlaylistController::class, 'index']);
-
-// routes/api.php
-Route::post('playlist/{id}/lagu', [PlaylistController::class, 'addSongToPlaylist']);
-
-// Rute untuk menghapus lagu dari playlist
-Route::delete('/laguplaylist/{playlist_id}/lagu/{lagu_id}', [LaguPlaylistController::class, 'destroy']);
-
-// Routes
-Route::get('lagu', [LaguController::class, 'getAllSongs']);
-
-Route::post('/playlist/{playlistId}/lagu', [LaguPlaylistController::class, 'addSongToPlaylist']);
-
-Route::delete('/playlist/{playlist_id}/lagu/{lagu_id}', [LaguPlaylistController::class, 'destroy']);
+// Rute untuk mendapatkan CSRF token
+Route::get('/sanctum/csrf-cookie', function () {
+    return response()->json(['message' => 'CSRF token set']);
+});
