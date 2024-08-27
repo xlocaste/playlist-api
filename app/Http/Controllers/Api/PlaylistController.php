@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 
 class PlaylistController extends Controller
 {
+    // Menampilkan daftar playlist milik user yang sedang login
     public function index()
     {
         $user = Auth::user();
@@ -22,26 +23,48 @@ class PlaylistController extends Controller
         ]);
     }
 
+    // Menyimpan playlist baru untuk user yang sedang login
     public function store(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         if (!$user) {
             return response()->json(['error' => 'User not authenticated'], 401);
         }
 
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
         $playlist = new Playlist();
         $playlist->user_id = $user->id;
-        // Lanjutkan dengan penyimpanan playlist
+        $playlist->title = $request->title;
+        $playlist->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Playlist berhasil dibuat!',
+            'data'    => $playlist
+        ]);
     }
 
+    // Menampilkan playlist tertentu milik user yang sedang login beserta lagu-lagunya
     public function show($id)
     {
         $playlist = Playlist::with('lagu')->where('id', $id)->where('user_id', Auth::id())->firstOrFail();
-        return response()->json($playlist);
+
+        return response()->json([
+            'success' => true,
+            'data'    => $playlist
+        ]);
     }
 
-    public function update(Request $request, Playlist $playlist)
+    // Memperbarui playlist milik user yang sedang login
+    public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
@@ -51,10 +74,7 @@ class PlaylistController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        // Ensure that the playlist belongs to the authenticated user
-        if ($playlist->user_id !== Auth::id()) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+        $playlist = Playlist::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
 
         $playlist->update([
             'title' => $request->title,
@@ -62,26 +82,25 @@ class PlaylistController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Data Playlist Berhasil Diubah!',
+            'message' => 'Playlist berhasil diubah!',
             'data'    => $playlist,
         ]);
     }
 
-    public function destroy(Playlist $playlist)
+    // Menghapus playlist milik user yang sedang login
+    public function destroy($id)
     {
-        // Ensure that the playlist belongs to the authenticated user
-        if ($playlist->user_id !== Auth::id()) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+        $playlist = Playlist::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
 
         $playlist->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Data Playlist Berhasil Dihapus!',
+            'message' => 'Playlist berhasil dihapus!',
         ]);
     }
 
+    // Menambahkan lagu ke dalam playlist milik user yang sedang login
     public function addSongToPlaylist(Request $request, $playlistId)
     {
         $request->validate([
@@ -93,9 +112,16 @@ class PlaylistController extends Controller
 
         try {
             $playlist->lagu()->attach($laguId);
-            return response()->json($playlist->load('lagu'), 200);
+            return response()->json([
+                'success' => true,
+                'message' => 'Lagu berhasil ditambahkan ke playlist!',
+                'data'    => $playlist->load('lagu')
+            ], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Terjadi kesalahan saat menambahkan lagu ke playlist', 'details' => $e->getMessage()], 500);
+            return response()->json([
+                'error'   => 'Terjadi kesalahan saat menambahkan lagu ke playlist',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 }

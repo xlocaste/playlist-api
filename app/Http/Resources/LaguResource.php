@@ -36,7 +36,13 @@ class LaguResource extends JsonResource
         return [
             'success'   => $this->status,
             'message'   => $this->message,
-            'data'      => $this->resource
+            'data'      => [
+                'id' => $this->id,
+                'mp3' => $this->mp3,
+                'title' => $this->title,
+                'create_at' => $this->create_at,
+                'update_at' => $this->update_at
+            ]
         ];
     }
 }

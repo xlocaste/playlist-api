@@ -11,6 +11,12 @@ class LaguPlaylist extends Model
 
     protected $table = 'laguplaylist';
 
+    protected $fillable = [
+        'id',
+        'lagu_id',
+        'playlist_id',
+    ];
+
     public function lagu()
     {
         return $this->belongsTo(Lagu::class);
