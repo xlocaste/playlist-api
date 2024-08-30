@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Playlist;
-use Illuminate\Http\Request;
+use App\Http\Requests\PlaylistRequest;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
@@ -24,20 +25,12 @@ class PlaylistController extends Controller
     }
 
     // Menyimpan playlist baru untuk user yang sedang login
-    public function store(Request $request)
+    public function store(PlaylistRequest $request)
     {
         $user = Auth::user();
 
         if (!$user) {
             return response()->json(['error' => 'User not authenticated'], 401);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
         }
 
         $playlist = new Playlist();
@@ -64,16 +57,8 @@ class PlaylistController extends Controller
     }
 
     // Memperbarui playlist milik user yang sedang login
-    public function update(Request $request, $id)
+    public function update(PlaylistRequest $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
         $playlist = Playlist::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
 
         $playlist->update([

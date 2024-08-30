@@ -19,6 +19,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //LAGU
     Route::post('/lagu', [LaguController::class, 'store']);
+    Route::delete('/lagu/{id}', [LaguController::class, 'destroy']);
     Route::get('/lagu', [LaguController::class, 'getAllSongs']);
 
     //PLAYLIST

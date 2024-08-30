@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use illuminate\http\Request;
 
 class PlaylistResource extends JsonResource
 {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Http\Requests\AuthRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -11,18 +12,18 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    public function register(AuthRequest $request)
     {
         // Validasi input
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
+        // $validator = Validator::make($request->all(), [
+        //     'name' => 'required|string|max:255',
+        //     'email' => 'required|string|email|max:255|unique:users',
+        //     'password' => 'required|string|min:6|confirmed',
+        // ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
+        // if ($validator->fails()) {
+        //     return response()->json($validator->errors(), 422);
+        // }
 
         // Buat user baru
         $user = User::create([
@@ -40,15 +41,15 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        // Validasi input
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email|max:255',
-            'password' => 'required|string|min:6',
-        ]);
+        // // Validasi input
+        // $validator = Validator::make($request->all(), [
+        //     'email' => 'required|string|email|max:255',
+        //     'password' => 'required|string|min:6',
+        // ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
+        // if ($validator->fails()) {
+        //     return response()->json($validator->errors(), 422);
+        // }
 
         // Cek kredensial
         if (!Auth::attempt($request->only('email', 'password'))) {

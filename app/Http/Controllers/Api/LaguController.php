@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Lagu;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\LaguResource;
+use App\Http\Requests\LaguRequest;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -33,19 +33,8 @@ class LaguController extends Controller
      * @param  mixed $request
      * @return void
      */
-    public function store(Request $request)
+    public function store(LaguRequest $request)
     {
-        //define validation rules
-        $validator = Validator::make($request->all(), [
-            'mp3'       => 'required|mimes:mp3',
-            'title'     => 'required',
-        ]);
-
-        //check if validation fails
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
         //upload mp3
         $mp3 = $request->file('mp3');
         $mp3->storeAs('public/lagu', $mp3->hashName());
@@ -79,19 +68,8 @@ class LaguController extends Controller
      * @param  mixed $lagu
      * @return void
      */
-    public function update(Request $request, Lagu $lagu)
+    public function update(LaguRequest $request, Lagu $lagu)
     {
-        //define validation rules
-        $validator = Validator::make($request->all(), [
-            'mp3'       => 'mimes:mp3',
-            'title'     => 'required',
-        ]);
-
-        //check if validation fails
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
         //check if mp3 is not empty
         if ($request->hasFile('mp3')) {
 
@@ -117,7 +95,10 @@ class LaguController extends Controller
         }
 
         //return response
-        return new LaguResource(true, 'Data Lagu Berhasil Diubah!', $lagu);
+        return response()->json([
+            'success' => true,
+            'message' => 'Lagu berhasil dirubah!',
+        ]);
     }
 
     /**
@@ -126,16 +107,18 @@ class LaguController extends Controller
      * @param  mixed $lagu
      * @return void
      */
-    public function destroy(Lagu $lagu)
+    public function destroy(lagu $lagu)
     {
-        //delete mp3
-        Storage::delete('public/lagu/'.$lagu->mp3);
+        Storage::delete('public/lagu/' . $lagu->mp3);
 
         //delete lagu
         $lagu->delete();
 
         //return response
-        return new LaguResource(true, 'Data Lagu Berhasil Dihapus!', null);
+        return response()->json([
+            'success' => true,
+            'message' => 'Lagu berhasil dihapus!',
+        ]);
     }
 
     public function getAllSongs()
