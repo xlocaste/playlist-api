@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Http\Requests\AuthRequest;
+use App\Http\Requests\LoginRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -14,17 +15,6 @@ class AuthController extends Controller
 {
     public function register(AuthRequest $request)
     {
-        // Validasi input
-        // $validator = Validator::make($request->all(), [
-        //     'name' => 'required|string|max:255',
-        //     'email' => 'required|string|email|max:255|unique:users',
-        //     'password' => 'required|string|min:6|confirmed',
-        // ]);
-
-        // if ($validator->fails()) {
-        //     return response()->json($validator->errors(), 422);
-        // }
-
         // Buat user baru
         $user = User::create([
             'name' => $request->name,
@@ -39,18 +29,8 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        // // Validasi input
-        // $validator = Validator::make($request->all(), [
-        //     'email' => 'required|string|email|max:255',
-        //     'password' => 'required|string|min:6',
-        // ]);
-
-        // if ($validator->fails()) {
-        //     return response()->json($validator->errors(), 422);
-        // }
-
         // Cek kredensial
         if (!Auth::attempt($request->only('email', 'password'))) {
             return response()->json([
