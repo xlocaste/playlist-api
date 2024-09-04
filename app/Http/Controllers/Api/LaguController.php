@@ -21,10 +21,10 @@ class LaguController extends Controller
     public function index()
     {
         //get posts
-        $lagu = Lagu::latest()->paginate(5);
+        $lagu = Lagu::paginate(5);
 
         //return collection of lagu as a resource
-        return new LaguResource(true, 'List Data Lagu', $lagu);
+        return LaguResource::collection($lagu);
     }
 
     /**

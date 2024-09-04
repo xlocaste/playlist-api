@@ -44,13 +44,15 @@ class AuthController extends Controller
         // Buat token
         $token = $user->createToken('Personal Access Token')->plainTextToken;
 
-        // Kembalikan respons dengan token
+        // Kembalikan respons dengan token dan role
         return response()->json([
             'message' => 'Login successful',
             'user' => $user,
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'expires_in' => 3600
+            'expires_in' => 3600,
+            'role' => $user->getRoleNames()->first(), // Mengembalikan role pertama yang dimiliki pengguna
         ]);
     }
+
 }

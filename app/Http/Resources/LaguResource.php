@@ -12,21 +12,6 @@ class LaguResource extends JsonResource
     public $message;
 
     /**
-     * __construct
-     *
-     * @param  mixed $status
-     * @param  mixed $message
-     * @param  mixed $resource
-     * @return void
-     */
-    public function __construct($status, $message, $resource)
-    {
-        parent::__construct($resource);
-        $this->status  = $status;
-        $this->message = $message;
-    }
-
-    /**
      * Transform the resource into an array.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -35,15 +20,13 @@ class LaguResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'success'   => $this->status,
-            'message'   => $this->message,
-            'data'      => [
+            // 'success'   => $this->status,
+            // 'message'   => $this->message,
                 'id' => $this->id,
                 'mp3' => $this->mp3,
                 'title' => $this->title,
-                'create_at' => $this->create_at,
-                'update_at' => $this->update_at
-            ]
+                'created_at' => $this->created_at,
+                'updated_at' => $this->updated_at,
         ];
     }
 }
